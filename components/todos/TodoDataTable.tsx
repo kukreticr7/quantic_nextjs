@@ -28,6 +28,9 @@ import { TableSkeleton } from "./table/TableSkeleton";
 import { Button } from "@/components/ui/button";
 import { useSession } from "next-auth/react";
 
+/**
+ * Props interface for the TodoDataTable component
+ */
 interface TodoDataTableProps {
   data: Todo[];
   onEdit: (todo: Todo) => void;
@@ -39,6 +42,10 @@ interface TodoDataTableProps {
   onPageSizeChange: (pageSize: number) => void;
 }
 
+/**
+ * Data table component for displaying and managing todos
+ * Includes sorting, filtering, pagination, and CRUD operations
+ */
 export function TodoDataTable({
   data,
   onEdit,
@@ -49,6 +56,7 @@ export function TodoDataTable({
   onPageChange,
   onPageSizeChange,
 }: TodoDataTableProps) {
+  // Initialize hooks and state
   const { toast } = useToast();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
@@ -59,9 +67,14 @@ export function TodoDataTable({
   >("all");
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
+  // Initialize mutation hooks for todo operations
   const [updateTodo] = useUpdateTodoMutation();
   const [deleteTodo] = useDeleteTodoMutation();
 
+  /**
+   * Table column definitions
+   * Includes ID, title, status, and admin-only actions
+   */
   const columns: ColumnDef<Todo>[] = [
     {
       accessorKey: "id",
@@ -163,6 +176,9 @@ export function TodoDataTable({
       : []),
   ];
 
+  /**
+   * Initialize table with sorting, filtering, and pagination
+   */
   const table = useReactTable({
     data,
     columns,
@@ -195,18 +211,21 @@ export function TodoDataTable({
     },
   });
 
+  // Show loading skeleton while data is being fetched
   if (isLoading) {
     return <TableSkeleton />;
   }
 
   return (
     <div className="space-y-4">
+      {/* Table filters for status */}
       <TableFilters
         table={table}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
       />
 
+      {/* Main table with header and body */}
       <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader table={table} />
@@ -258,6 +277,7 @@ export function TodoDataTable({
         </Table>
       </div>
 
+      {/* Pagination controls */}
       <TablePagination
         table={table}
         currentPage={currentPage}

@@ -19,10 +19,16 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 
+/**
+ * Form component for creating new todos
+ * Handles form validation, submission, and error handling
+ */
 export function CreateTodoForm() {
+  // Initialize mutation hook for adding todos and toast notifications
   const [addTodo, { isLoading }] = useAddTodoMutation();
   const { toast } = useToast();
 
+  // Initialize form with validation schema and default values
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoSchema),
     defaultValues: {
@@ -32,6 +38,10 @@ export function CreateTodoForm() {
     },
   });
 
+  /**
+   * Handle form submission
+   * Creates a new todo and shows success/error notifications
+   */
   async function onSubmit(values: TodoFormValues) {
     try {
       await addTodo(values).unwrap();

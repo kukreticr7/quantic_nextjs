@@ -4,13 +4,20 @@ import { compare } from "bcryptjs";
 import dbConnect from "@/lib/mongodb";
 import User from "@/lib/types/userModel";
 
+/**
+ * NextAuth configuration options
+ * Sets up authentication with credentials provider
+ */
 export const authOptions: NextAuthOptions = {
+  // Use JWT for session management
   session: {
     strategy: "jwt",
   },
+  // Custom sign in page
   pages: {
     signIn: "/auth/signin",
   },
+  // Configure authentication providers
   providers: [
     CredentialsProvider({
       name: "Sign in",
@@ -22,12 +29,17 @@ export const authOptions: NextAuthOptions = {
         },
         password: { label: "Password", type: "password" },
       },
+      /**
+       * Authorize user credentials
+       * Validates email and password against database
+       */
       async authorize(credentials) {
         if (!credentials?.email || !credentials.password) {
           throw new Error("Invalid credentials format");
         }
 
         try {
+          // Connect to database and find user
           await dbConnect();
           const user = await User.findOne({ email: credentials.email });
 
@@ -35,6 +47,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error("No user found with this email");
           }
 
+          // Verify password
           const isPasswordValid = await compare(
             credentials.password,
             user.password
@@ -44,6 +57,7 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Invalid password");
           }
 
+          // Return user data without password
           return {
             id: user._id.toString(),
             email: user.email,
@@ -59,7 +73,12 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
+  // Configure session and JWT callbacks
   callbacks: {
+    /**
+     * Modify session data
+     * Adds user ID and role to session
+     */
     session: ({ session, token }) => {
       return {
         ...session,
@@ -70,6 +89,10 @@ export const authOptions: NextAuthOptions = {
         },
       };
     },
+    /**
+     * Modify JWT token
+     * Adds user ID and role to token
+     */
     jwt: ({ token, user }) => {
       if (user) {
         return {

@@ -27,6 +27,14 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+/**
+ * Form validation schema using zod
+ * Validates user registration data including:
+ * - Name length
+ * - Email format
+ * - Password length and confirmation
+ * - Role selection
+ */
 const formSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters"),
@@ -46,13 +54,19 @@ const formSchema = z
 
 type FormValues = z.infer<typeof formSchema>;
 
+/**
+ * Registration form component
+ * Handles new user registration with validation and error handling
+ */
 export function RegisterForm() {
+  // Initialize hooks and state
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(searchParams.get("error"));
 
+  // Initialize form with validation and default values
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -64,10 +78,15 @@ export function RegisterForm() {
     },
   });
 
+  /**
+   * Handle form submission
+   * Sends registration data to the API and handles success/error states
+   */
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     setError(null);
     try {
+      // Send registration request to the API
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
@@ -90,12 +109,14 @@ export function RegisterForm() {
         throw new Error(errorMessage);
       }
 
+      // Show success message and redirect to sign in page
       toast({
         title: "Success",
         description: "Account created successfully",
       });
       router.push("/auth/signin");
     } catch (error) {
+      // Handle and display error messages
       const errorMessage =
         error instanceof Error ? error.message : "Something went wrong";
       setError(errorMessage);
@@ -111,6 +132,7 @@ export function RegisterForm() {
 
   return (
     <>
+      {/* Display error message if any */}
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
@@ -118,6 +140,7 @@ export function RegisterForm() {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Name input field */}
           <FormField
             control={form.control}
             name="name"
@@ -131,6 +154,7 @@ export function RegisterForm() {
               </FormItem>
             )}
           />
+          {/* Email input field */}
           <FormField
             control={form.control}
             name="email"
@@ -148,6 +172,7 @@ export function RegisterForm() {
               </FormItem>
             )}
           />
+          {/* Password input field */}
           <FormField
             control={form.control}
             name="password"
@@ -165,6 +190,7 @@ export function RegisterForm() {
               </FormItem>
             )}
           />
+          {/* Confirm password input field */}
           <FormField
             control={form.control}
             name="confirmPassword"
@@ -182,6 +208,7 @@ export function RegisterForm() {
               </FormItem>
             )}
           />
+          {/* Role selection field */}
           <FormField
             control={form.control}
             name="role"
@@ -206,6 +233,7 @@ export function RegisterForm() {
               </FormItem>
             )}
           />
+          {/* Submit button with loading state */}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
@@ -218,6 +246,7 @@ export function RegisterForm() {
           </Button>
         </form>
       </Form>
+      {/* Link to sign in page */}
       <div className="mt-4 text-center text-sm">
         <span>Already have an account? </span>
         <Link href="/auth/signin" className="text-blue-600 hover:underline">

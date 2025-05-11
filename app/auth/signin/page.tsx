@@ -2,16 +2,12 @@ import { SignInForm } from "@/components/auth/SignInForm";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
-import { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Sign In",
-  description: "Sign in to your account",
-};
 
 export default async function SignInPage() {
+  // Check if user is already authenticated
   const session = await getServerSession(authOptions);
 
+  // Redirect to home page if user is already logged in
   if (session) {
     redirect("/");
   }
@@ -27,6 +23,7 @@ export default async function SignInPage() {
             Enter your credentials to sign in to your account
           </p>
         </div>
+        {/* Render sign in form component */}
         <SignInForm />
       </div>
     </div>

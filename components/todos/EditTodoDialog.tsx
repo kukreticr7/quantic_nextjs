@@ -28,20 +28,29 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 
+/**
+ * Props interface for the EditTodoDialog component
+ */
 interface EditTodoDialogProps {
   todo: Todo;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Dialog component for editing existing todos
+ * Provides a form to modify todo title and completion status
+ */
 export function EditTodoDialog({
   todo,
   open,
   onOpenChange,
 }: EditTodoDialogProps) {
+  // Initialize mutation hook for updating todos and toast notifications
   const [updateTodo, { isLoading }] = useUpdateTodoMutation();
   const { toast } = useToast();
 
+  // Initialize form with validation schema and todo's current values
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoSchema),
     defaultValues: {
@@ -51,6 +60,10 @@ export function EditTodoDialog({
     },
   });
 
+  /**
+   * Handle form submission
+   * Updates the todo and shows success/error notifications
+   */
   async function onSubmit(values: TodoFormValues) {
     try {
       await updateTodo({
@@ -78,7 +91,7 @@ export function EditTodoDialog({
         <DialogHeader>
           <DialogTitle>Edit Todo</DialogTitle>
           <DialogDescription>
-            Make changes to your todo here. Click save when you're done.
+            {`Make changes to your todo here. Click save when you're done.`}
           </DialogDescription>
         </DialogHeader>
 

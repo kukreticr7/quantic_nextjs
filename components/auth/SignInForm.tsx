@@ -21,6 +21,10 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+/**
+ * Form validation schema using zod
+ * Validates email format and password length
+ */
 const formSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -28,6 +32,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Converts API error messages to user-friendly messages
 const getErrorMessage = (error: string | null) => {
   switch (error) {
     case "Invalid credentials format":
@@ -43,15 +48,22 @@ const getErrorMessage = (error: string | null) => {
   }
 };
 
+/**
+ * Sign in form component
+ * Handles user authentication with email and password
+ */
 export function SignInForm() {
+  // Initialize hooks and state
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  // Get error message from URL if present (e.g., after failed login attempt)
   const [error, setError] = useState<string | null>(
     getErrorMessage(searchParams.get("error"))
   );
 
+  // Initialize form with validation
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -60,10 +72,15 @@ export function SignInForm() {
     },
   });
 
+  /**
+   * Handle form submission
+   * Attempts to sign in the user and handles success/error states
+   */
   const onSubmit = async (values: FormValues) => {
     setIsLoading(true);
     setError(null);
     try {
+      // Attempt to sign in using NextAuth
       const result = await signIn("credentials", {
         email: values.email,
         password: values.password,
@@ -71,6 +88,7 @@ export function SignInForm() {
       });
 
       if (result?.error) {
+        // Show error message if sign in fails
         const errorMessage = getErrorMessage(result.error);
         setError(errorMessage);
         toast({
@@ -79,6 +97,7 @@ export function SignInForm() {
           description: errorMessage,
         });
       } else {
+        // Redirect to home page on successful login
         toast({
           title: "Success",
           description: "Logged in successfully",
@@ -87,6 +106,7 @@ export function SignInForm() {
         router.refresh();
       }
     } catch (error) {
+      // Handle unexpected errors
       const errorMessage =
         error instanceof Error ? error.message : "Something went wrong";
       setError(errorMessage);
@@ -102,6 +122,7 @@ export function SignInForm() {
 
   return (
     <>
+      {/* Show error message if any */}
       {error && (
         <Alert variant="destructive" className="mb-4">
           <AlertDescription>{error}</AlertDescription>
@@ -109,6 +130,7 @@ export function SignInForm() {
       )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {/* Email input field */}
           <FormField
             control={form.control}
             name="email"
@@ -126,6 +148,7 @@ export function SignInForm() {
               </FormItem>
             )}
           />
+          {/* Password input field */}
           <FormField
             control={form.control}
             name="password"
@@ -143,6 +166,7 @@ export function SignInForm() {
               </FormItem>
             )}
           />
+          {/* Submit button with loading state */}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? (
               <>
@@ -155,6 +179,7 @@ export function SignInForm() {
           </Button>
         </form>
       </Form>
+      {/* Link to registration page */}
       <div className="mt-4 text-center text-sm">
         <span>Don&apos;t have an account? </span>
         <Link href="/auth/register" className="text-blue-600 hover:underline">

@@ -23,24 +23,37 @@ import { useRouter } from "next/navigation";
 import { Todo } from "@/lib/types/todo";
 import { EditTodoDialog } from "@/components/todos/EditTodoDialog";
 
+/**
+ * Main page component for the Todo application
+ * Handles authentication, todo list display, creation, and editing
+ */
 export default function Home() {
+  // Initialize hooks for toast notifications, authentication, and routing
   const { toast } = useToast();
   const { status } = useSession();
   const router = useRouter();
+
+  // State for pagination
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Fetch todos data with pagination
   const { data, isLoading, error } = useGetTodosQuery({
     page,
     limit: pageSize,
   });
+
+  // State to track the todo being edited
   const [selectedTodo, setSelectedTodo] = useState<Todo | null>(null);
 
+  // Redirect to signin page if user is not authenticated
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/auth/signin");
     }
   }, [status, router]);
 
+  // Show error toast if todo fetching fails
   useEffect(() => {
     if (error) {
       toast({
@@ -51,6 +64,7 @@ export default function Home() {
     }
   }, [error, toast]);
 
+  // Handler functions for todo operations
   const handleEdit = (todo: Todo) => {
     setSelectedTodo(todo);
   };
@@ -59,6 +73,7 @@ export default function Home() {
     setSelectedTodo(null);
   };
 
+  // Pagination handlers
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
   };
@@ -68,6 +83,7 @@ export default function Home() {
     setPage(1);
   };
 
+  // Show loading state while authentication or data is loading
   if (status === "loading" || isLoading) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -76,6 +92,7 @@ export default function Home() {
     );
   }
 
+  // Don't render anything if user is not authenticated
   if (status === "unauthenticated") {
     return null;
   }

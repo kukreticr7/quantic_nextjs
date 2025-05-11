@@ -4,8 +4,10 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/auth";
 
 export default async function RegisterPage() {
+  // Check if user is already authenticated
   const session = await getServerSession(authOptions);
 
+  // Redirect to home page if user is already logged in
   if (session) {
     redirect("/");
   }
@@ -21,6 +23,7 @@ export default async function RegisterPage() {
             Enter your information to create your account
           </p>
         </div>
+        {/* Render registration form component */}
         <RegisterForm />
       </div>
     </div>

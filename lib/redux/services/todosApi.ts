@@ -1,6 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { Todo } from '@/lib/types/todo';
 
+/**
+ * Interface for paginated API response
+ */
 interface PaginatedResponse {
   data: Todo[];
   total: number;
@@ -8,11 +11,18 @@ interface PaginatedResponse {
   limit: number;
 }
 
+/**
+ * Interface for pagination parameters
+ */
 interface PaginationParams {
   page?: number;
   limit?: number;
 }
 
+/**
+ * RTK Query API for todos
+ * Handles CRUD operations and caching
+ */
 export const todosApi = createApi({
   reducerPath: 'todosApi',
   baseQuery: fetchBaseQuery({
@@ -20,6 +30,9 @@ export const todosApi = createApi({
   }),
   tagTypes: ['Todos'],
   endpoints: (builder) => ({
+    /**
+     * Get paginated list of todos
+     */
     getTodos: builder.query<PaginatedResponse, PaginationParams>({
       query: () => 'todos',
       transformResponse: (response: Todo[], meta, arg) => {
@@ -35,12 +48,19 @@ export const todosApi = createApi({
           limit,
         };
       },
-
     }),
+
+    /**
+     * Get a single todo by ID
+     */
     getTodoById: builder.query<Todo, number>({
       query: (id) => `todos/${id}`,
       providesTags: (result, error, id) => [{ type: 'Todos', id }],
     }),
+
+    /**
+     * Add a new todo
+     */
     addTodo: builder.mutation<Todo, Omit<Todo, 'id'>>({
       query: (todo) => ({
         url: 'todos',
@@ -50,6 +70,7 @@ export const todosApi = createApi({
       async onQueryStarted(todo, { dispatch, queryFulfilled }) {
         try {
           const { data: savedTodo } = await queryFulfilled;
+          // Optimistically update the cache
           dispatch(
             todosApi.util.updateQueryData('getTodos', { page: 1, limit: 10 }, (draft) => {
               draft.data.unshift(savedTodo);
@@ -62,6 +83,10 @@ export const todosApi = createApi({
       },
       invalidatesTags: [{ type: 'Todos', id: 'LIST' }],
     }),
+
+    /**
+     * Update an existing todo
+     */
     updateTodo: builder.mutation<Todo, Todo>({
       query: (todo) => ({
         url: `todos/${todo.id}`,
@@ -71,6 +96,7 @@ export const todosApi = createApi({
       async onQueryStarted(todo, { dispatch, queryFulfilled }) {
         try {
           const { data: updatedTodo } = await queryFulfilled;
+          // Optimistically update the cache
           dispatch(
             todosApi.util.updateQueryData('getTodos', { page: 1, limit: 10 }, (draft) => {
               const index = draft.data.findIndex((t) => t.id === todo.id);
@@ -85,6 +111,10 @@ export const todosApi = createApi({
       },
       invalidatesTags: (result, error, { id }) => [{ type: 'Todos', id }],
     }),
+
+    /**
+     * Delete a todo
+     */
     deleteTodo: builder.mutation<void, number>({
       query: (id) => ({
         url: `todos/${id}`,
@@ -93,6 +123,7 @@ export const todosApi = createApi({
       async onQueryStarted(id, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
+          // Optimistically update the cache
           dispatch(
             todosApi.util.updateQueryData('getTodos', { page: 1, limit: 10 }, (draft) => {
               draft.data = draft.data.filter((todo) => todo.id !== id);
@@ -108,6 +139,7 @@ export const todosApi = createApi({
   }),
 });
 
+// Export generated hooks for use in components
 export const {
   useGetTodosQuery,
   useGetTodoByIdQuery,
