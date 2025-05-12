@@ -88,15 +88,39 @@ export const todosApi = createApi({
      * Update an existing todo
      */
     updateTodo: builder.mutation<Todo, Todo>({
-      query: (todo) => ({
-        url: `todos/${todo.id}`,
-        method: 'PUT',
-        body: todo,
-      }),
+      query: (todo) => {
+        // For local todos (ID > 200), don't make an API call
+        if (todo.id > 200) {
+          return {
+            url: 'todos/1',
+            method: 'PUT',
+            body: todo,
+            skip: true
+          };
+        }
+        return {
+          url: `todos/${todo.id}`,
+          method: 'PUT',
+          body: todo,
+        };
+      },
       async onQueryStarted(todo, { dispatch, queryFulfilled }) {
         try {
+          // For local todos, we'll just update the cache directly
+          if (todo.id > 200) {
+            dispatch(
+              todosApi.util.updateQueryData('getTodos', { page: 1, limit: 10 }, (draft) => {
+                const index = draft.data.findIndex((t) => t.id === todo.id);
+                if (index !== -1) {
+                  draft.data[index] = todo;
+                }
+              })
+            );
+            return;
+          }
+
+          // For regular todos, proceed with the API call
           const { data: updatedTodo } = await queryFulfilled;
-          // Optimistically update the cache
           dispatch(
             todosApi.util.updateQueryData('getTodos', { page: 1, limit: 10 }, (draft) => {
               const index = draft.data.findIndex((t) => t.id === todo.id);
